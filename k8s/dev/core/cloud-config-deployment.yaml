@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloud-config
+  annotations:
+    kompose.cmd: kompose convert -f core.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: cloud-config
+    io.kompose.service: cloud-config
+  name: cloud-config
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cloud-config
+      io.kompose.service: cloud-config
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f core.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: cloud-config
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: cloud-config
     spec:
       containers:
-        - name: cloud-config
-          image: selimhorri/cloud-config-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 9296
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -32,4 +38,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: cloud-config
+          image: selimhorri/cloud-config-ecommerce-boot:0.1.0
+          name: cloud-config
+          ports:
+            - containerPort: 9296
+          resources: {}
       restartPolicy: Always
+status: {}

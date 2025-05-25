@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shipping-service
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: shipping-service
+    io.kompose.service: shipping-service
+  name: shipping-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shipping-service
+      io.kompose.service: shipping-service
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: shipping-service
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: shipping-service
     spec:
       containers:
-        - name: shipping-service
-          image: selimhorri/shipping-service-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8600
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -34,4 +40,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: shipping-service
+          image: selimhorri/shipping-service-ecommerce-boot:0.1.0
+          name: shipping-service
+          ports:
+            - containerPort: 8600
+          resources: {}
       restartPolicy: Always
+status: {}

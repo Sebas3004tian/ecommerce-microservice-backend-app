@@ -6,15 +6,15 @@ metadata:
     kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
-    io.kompose.service: order-service
-  name: order-service
+    io.kompose.service: proxy-client
+  name: proxy-client
 spec:
   type: LoadBalancer
   ports:
-    - name: "8300"
-      port: 8300
-      targetPort: 8300
+    - name: "8900"
+      port: 8900
+      targetPort: 8900
   selector:
-    io.kompose.service: order-service
+    io.kompose.service: proxy-client
 status:
   loadBalancer: {}

@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-service
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: user-service
+    io.kompose.service: user-service
+  name: user-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: user-service
+      io.kompose.service: user-service
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: user-service
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: user-service
     spec:
       containers:
-        - name: user-service
-          image: selimhorri/user-service-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8700
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -34,4 +40,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: user-service
+          image: selimhorri/user-service-ecommerce-boot:0.1.0
+          name: user-service
+          ports:
+            - containerPort: 8700
+          resources: {}
       restartPolicy: Always
+status: {}

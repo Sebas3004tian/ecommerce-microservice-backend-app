@@ -1,27 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-discovery
+  annotations:
+    kompose.cmd: kompose convert -f core.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: service-discovery
+    io.kompose.service: service-discovery
+  name: service-discovery
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: service-discovery
+      io.kompose.service: service-discovery
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f core.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: service-discovery
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: service-discovery
     spec:
       containers:
-        - name: service-discovery
-          image: selimhorri/service-discovery-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8761
-          env:
+        - env:
             - name: SPRING_CONFIG_IMPORT
               value: optional:configserver:http://cloud-config:9296/
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+          image: selimhorri/service-discovery-ecommerce-boot:0.1.0
+          name: service-discovery
+          ports:
+            - containerPort: 8761
+          resources: {}
       restartPolicy: Always
+status: {}

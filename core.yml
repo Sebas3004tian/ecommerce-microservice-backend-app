@@ -10,7 +10,7 @@ services:
       - microservices_network
 
   # Servicio de Descubrimiento y Registro (Eureka Server)
-  service-discovery-container:
+  service-discovery:
     image: selimhorri/service-discovery-ecommerce-boot:0.1.0
     ports:
       - "8761:8761"
@@ -18,10 +18,10 @@ services:
       - microservices_network
     environment:
       - SPRING_ZIPKIN_BASE-URL=http://zipkin:9411
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://cloud-config-container:9296/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://cloud-config:9296/
 
   # Servidor de Configuración Centralizada
-  cloud-config-container:
+  cloud-config:
     image: selimhorri/cloud-config-ecommerce-boot:0.1.0
     ports:
       - "9296:9296"
@@ -32,8 +32,8 @@ services:
       - SPRING_ZIPKIN_BASE-URL=http://zipkin:9411
       - EUREKA_CLIENT_REGION=default
       - EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT=myzone
-      - EUREKA_CLIENT_SERVICEURL_MYZONE=http://service-discovery-container:8761/eureka
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery-container:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_MYZONE=http://service-discovery:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
 
 # Red personalizada para comunicación entre servicios
 networks:

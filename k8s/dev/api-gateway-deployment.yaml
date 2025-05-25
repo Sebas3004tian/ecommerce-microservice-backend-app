@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: api-gateway
+    io.kompose.service: api-gateway
+  name: api-gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-gateway
+      io.kompose.service: api-gateway
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: api-gateway
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: api-gateway
     spec:
       containers:
-        - name: api-gateway
-          image: selimhorri/api-gateway-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8080
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -34,4 +40,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: api-gateway
+          image: selimhorri/api-gateway-ecommerce-boot:0.1.0
+          name: api-gateway
+          ports:
+            - containerPort: 8080
+          resources: {}
       restartPolicy: Always
+status: {}

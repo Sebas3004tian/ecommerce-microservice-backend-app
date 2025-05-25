@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: payment-service
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: payment-service
+    io.kompose.service: payment-service
+  name: payment-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: payment-service
+      io.kompose.service: payment-service
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: payment-service
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: payment-service
     spec:
       containers:
-        - name: payment-service
-          image: selimhorri/payment-service-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8400
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -34,4 +40,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: payment-service
+          image: selimhorri/payment-service-ecommerce-boot:0.1.0
+          name: payment-service
+          ports:
+            - containerPort: 8400
+          resources: {}
       restartPolicy: Always
+status: {}

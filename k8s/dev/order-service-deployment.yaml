@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-service
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: order-service
+    io.kompose.service: order-service
+  name: order-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order-service
+      io.kompose.service: order-service
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: order-service
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: order-service
     spec:
       containers:
-        - name: order-service
-          image: selimhorri/order-service-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8300
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -34,4 +40,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: order-service
+          image: selimhorri/order-service-ecommerce-boot:0.1.0
+          name: order-service
+          ports:
+            - containerPort: 8300
+          resources: {}
       restartPolicy: Always
+status: {}

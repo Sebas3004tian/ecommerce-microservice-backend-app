@@ -1,25 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: proxy-client
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: proxy-client
+    io.kompose.service: proxy-client
+  name: proxy-client
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: proxy-client
+      io.kompose.service: proxy-client
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: proxy-client
+        io.kompose.network/microservices_network: "true"
+        io.kompose.service: proxy-client
     spec:
       containers:
-        - name: proxy-client
-          image: selimhorri/proxy-client-ecommerce-boot:0.1.0
-          ports:
-            - containerPort: 8900
-          env:
+        - env:
             - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
               value: myzone
             - name: EUREKA_CLIENT_REGION
@@ -34,4 +40,12 @@ spec:
               value: dev
             - name: SPRING_ZIPKIN_BASE-URL
               value: http://zipkin:9411
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: proxy-client
+          image: selimhorri/proxy-client-ecommerce-boot:0.1.0
+          name: proxy-client
+          ports:
+            - containerPort: 8900
+          resources: {}
       restartPolicy: Always
+status: {}

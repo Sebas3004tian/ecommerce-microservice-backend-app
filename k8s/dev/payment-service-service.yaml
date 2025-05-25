@@ -1,6 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: payment-service
   name: payment-service
 spec:
   type: LoadBalancer
@@ -9,4 +15,6 @@ spec:
       port: 8400
       targetPort: 8400
   selector:
-    app: payment-service
+    io.kompose.service: payment-service
+status:
+  loadBalancer: {}
