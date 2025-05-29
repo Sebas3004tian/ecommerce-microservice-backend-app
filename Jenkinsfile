@@ -33,7 +33,7 @@ spec:
 
     environment {
         DOCKERHUB_USER = "sebas3004tian"
-        IMAGE_TAG = "dev-${env.BUILD_NUMBER}"
+        IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
         REPO_URL = "https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git"
         K8S_NAMESPACE = "ecommerce"
     }
@@ -41,7 +41,7 @@ spec:
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'develop-taller2-Ingesoft', url: "${REPO_URL}"
+                git branch: ${env.BRANCH_NAME}, url: "${REPO_URL}"
             }
         }
 
@@ -109,10 +109,12 @@ spec:
                         "user-service"
                     ]
                     for (service in otherServices) {
-                        def path = "k8s/dev/${service}-deployment.yaml"
+                        def pathDeployment = "k8s/dev/${service}-deployment.yaml"
+                        def pathService = "k8s/dev/${service}-service.yaml"
                         if (fileExists(path)) {
                             echo "Desplegando ${service}..."
-                            sh "kubectl apply -f ${path} -n ${K8S_NAMESPACE}"
+                            sh "kubectl apply -f ${pathDeployment} -n ${K8S_NAMESPACE}"
+                            sh "kubectl apply -f ${pathService} -n ${K8S_NAMESPACE}"
                         } else {
                             echo "WARNING: No se encontró deployment para ${service}"
                         }
