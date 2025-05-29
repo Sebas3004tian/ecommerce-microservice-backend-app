@@ -12,9 +12,18 @@ spec:
   serviceAccountName: jenkins
   securityContext:
     runAsUser: 0
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
+
   containers:
   - name: jenkins-agent-k8s
     image: sebas3004tian/jenkins-agent-k8s:latest
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
     command:
     - cat
     tty: true
