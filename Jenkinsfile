@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'devop-taller2-Ingesoft', url: "${REPO_URL}"
+                git branch: 'develop-taller2-Ingesoft', url: "${REPO_URL}"
             }
         }
 
