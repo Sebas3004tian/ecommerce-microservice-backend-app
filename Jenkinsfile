@@ -34,6 +34,15 @@ spec:
             }
         }
 
+        stage('Build JARs with Maven') {
+            steps {
+                container('jenkins-agent-k8s') {
+                    sh './mvnw clean package -DskipTests'
+                }
+            }
+        }
+
+
         stage('Build All Services') {
             steps {
                 script {
