@@ -38,10 +38,6 @@ spec:
         K8S_NAMESPACE = "${BRANCH_NAME}" 
     }
 
-    options {
-        skipStagesAfterUnstable()
-        timestamps()
-    }
 
     stages {
         stage('Prepare Namespace') {
@@ -59,10 +55,18 @@ spec:
         stage('Build JARs with Maven') {
             steps {
                 container('jenkins-agent-k8s') {
-                    sh './mvnw clean package -DskipTests'
+                    script {
+                        if (env.BRANCH_NAME == 'develop') {
+                            sh './mvnw clean package -DskipTests'
+                        } else {
+                            echo "Omitiendo build de JARs en rama '${env.BRANCH_NAME}'"
+                        }
+                    }
                 }
             }
         }
+
+
 
         stage('Build & Push All Services') {
             steps {
