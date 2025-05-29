@@ -10,8 +10,6 @@ metadata:
     jenkins/label: jenkins-agent-k8s
 spec:
   serviceAccountName: jenkins
-  securityContext:
-    runAsUser: 0
   volumes:
   - name: docker-sock
     hostPath:
