@@ -21,4 +21,9 @@ RUN curl -sLO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/st
 # Verifica que docker pueda ejecutarse sin sudo (opcional)
 RUN groupadd docker || true && usermod -aG docker jenkins
 
+# Instalar Docker CLI
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    usermod -aG docker jenkins
+
 USER jenkins
