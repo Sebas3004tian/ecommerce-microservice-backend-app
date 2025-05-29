@@ -26,6 +26,13 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "3Gi"
+        cpu: "2000m"
 """
         }
     }
