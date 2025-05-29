@@ -1,5 +1,23 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            defaultContainer 'jenkins-agent-k8s'
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins/label: jenkins-agent-k8s
+spec:
+  containers:
+  - name: jenkins-agent-k8s
+    image: sebas3004tian/jenkins-agent-k8s:latest
+    command:
+    - cat
+    tty: true
+"""
+        }
+    }
 
     environment {
         DOCKERHUB_USER = "sebas3004tian"
@@ -38,10 +56,9 @@ pipeline {
                         "proxy-client"
                     ]
 
-                    // Detect folders with changes entre los dos últimos commits
                     def diffOutput = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
                     def changedServices = allServices.findAll { service ->
-                        diffOutput.split('\n').any { it.startsWith(service + "/") }
+                        diffOutput.split('\\n').any { it.startsWith(service + "/") }
                     }
 
                     if (changedServices.isEmpty()) {
