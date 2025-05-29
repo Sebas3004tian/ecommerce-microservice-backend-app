@@ -59,13 +59,13 @@ spec:
 
                     def diffOutput = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
                     def changedServices = allServices.findAll { service ->
-                        diffOutput.split('\\n').any { it.startsWith(service + "/") }
+                        diffOutput.split('\n').any { it.startsWith(service + "/") }
                     }
 
                     if (changedServices.isEmpty()) {
                         echo "No microservices changed. Skipping build and deploy."
-                        currentBuild.result = 'SUCCESS'
-                        skipRemainingStages = true
+                        env.CHANGED_SERVICES = ""  // <-- Aquí seteas la variable para evitar null
+                        // Puedes usar currentBuild.result o flags para saltar etapas después
                     } else {
                         echo "Changed services: ${changedServices.join(', ')}"
                         env.CHANGED_SERVICES = changedServices.join(',')
@@ -76,7 +76,7 @@ spec:
 
         stage('Build Changed Services') {
             when {
-                expression { return !env.CHANGED_SERVICES?.isEmpty() }
+                expression { return env.CHANGED_SERVICES?.trim() }
             }
             steps {
                 script {
@@ -88,6 +88,7 @@ spec:
                 }
             }
         }
+
 
         stage('Push Images') {
             when {
