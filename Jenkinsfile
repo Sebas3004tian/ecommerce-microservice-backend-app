@@ -17,7 +17,6 @@ spec:
     hostPath:
       path: /var/run/docker.sock
       type: Socket
-
   containers:
   - name: jenkins-agent-k8s
     image: sebas3004tian/jenkins-agent-k8s:latest
@@ -36,10 +35,21 @@ spec:
         IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
         BRANCH_NAME = "${env.BRANCH_NAME}"
         REPO_URL = "https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git"
-        K8S_NAMESPACE = "ecommerce"
+        K8S_NAMESPACE = "${BRANCH_NAME}" 
+    }
+
+    options {
+        skipStagesAfterUnstable()
+        timestamps()
     }
 
     stages {
+        stage('Prepare Namespace') {
+            steps {
+                sh "kubectl get namespace ${K8S_NAMESPACE} || kubectl create namespace ${K8S_NAMESPACE}"
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
@@ -54,30 +64,22 @@ spec:
             }
         }
 
-
         stage('Build & Push All Services') {
             steps {
                 script {
-                docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
-                    def allServices = [
-                    "api-gateway",
-                    "favourite-service",
-                    "order-service",
-                    "payment-service",
-                    "product-service",
-                    "shipping-service",
-                    "user-service",
-                    "cloud-config",
-                    "service-discovery",
-                    "proxy-client"
-                    ]
-                    for (service in allServices) {
-                    dir(service) {
-                        def customImage = docker.build("${DOCKERHUB_USER}/${service}:${IMAGE_TAG}")
-                        customImage.push()
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
+                        def allServices = [
+                            "api-gateway", "favourite-service", "order-service", "payment-service",
+                            "product-service", "shipping-service", "user-service",
+                            "cloud-config", "service-discovery", "proxy-client"
+                        ]
+                        for (service in allServices) {
+                            dir(service) {
+                                def customImage = docker.build("${DOCKERHUB_USER}/${service}:${IMAGE_TAG}")
+                                customImage.push()
+                            }
+                        }
                     }
-                    }
-                }
                 }
             }
         }
@@ -85,67 +87,33 @@ spec:
         stage('Change Image in Manifests') {
             steps {
                 script {
-                    def allServicesCore = [
-                        "cloud-config",
-                        "service-discovery",
-                        "zipkin",
-                    ]
+                    def allServicesCore = ["cloud-config", "service-discovery", "zipkin"]
                     def allServices = [
-                        "api-gateway",
-                        "favourite-service",
-                        "order-service",
-                        "payment-service",
-                        "product-service",
-                        "shipping-service",
-                        "user-service",
-                        "cloud-config",
-                        "service-discovery",
-                        "proxy-client"
+                        "api-gateway", "favourite-service", "order-service", "payment-service",
+                        "product-service", "shipping-service", "user-service",
+                        "cloud-config", "service-discovery", "proxy-client"
                     ]
 
                     for (serviceCore in allServicesCore) {
                         def manifestPath = "k8s/dev/core/${serviceCore}-deployment.yaml"
-
                         if (fileExists(manifestPath)) {
-                            echo "Actualizando imagen en ${manifestPath}..."
-
                             def newImage = "${DOCKERHUB_USER}/${serviceCore}:${IMAGE_TAG}"
-
-                            sh """
-                            sed -i 's|image: .*${service}:.*|image: ${newImage}|' ${manifestPath}
-                            """
-
-
-                            // Confirmación visual (opcional)
+                            sh "sed -i 's|image: .*/${serviceCore}:.*|image: ${newImage}|' ${manifestPath}"
                             sh "grep 'image:' ${manifestPath}"
-                        } else {
-                            echo "WARNING: No se encontró manifest para ${serviceCore}"
                         }
                     }
 
                     for (service in allServices) {
                         def manifestPath = "k8s/dev/${service}-deployment.yaml"
-
                         if (fileExists(manifestPath)) {
-                            echo "Actualizando imagen en ${manifestPath}..."
-
                             def newImage = "${DOCKERHUB_USER}/${service}:${IMAGE_TAG}"
-
-                            sh """
-                            sed -i 's|image: .*/${service}:.*|image: ${newImage}|' ${manifestPath}
-                            """
-
-                            // Confirmación visual (opcional)
+                            sh "sed -i 's|image: .*/${service}:.*|image: ${newImage}|' ${manifestPath}"
                             sh "grep 'image:' ${manifestPath}"
-                        } else {
-                            echo "WARNING: No se encontró manifest para ${service}"
                         }
                     }
                 }
             }
         }
-
-
 
         stage('Deploy Core Services') {
             steps {
@@ -165,27 +133,31 @@ spec:
             steps {
                 script {
                     def otherServices = [
-                        "api-gateway",
-                        "favourite-service",
-                        "order-service",
-                        "payment-service",
-                        "product-service",
-                        "shipping-service",
-                        "user-service"
+                        "api-gateway", "favourite-service", "order-service",
+                        "payment-service", "product-service", "shipping-service", "user-service"
                     ]
                     for (service in otherServices) {
                         def pathDeployment = "k8s/dev/${service}-deployment.yaml"
                         def pathService = "k8s/dev/${service}-service.yaml"
-                        if (fileExists(path)) {
+                        if (fileExists(pathDeployment) && fileExists(pathService)) {
                             echo "Desplegando ${service}..."
                             sh "kubectl apply -f ${pathDeployment} -n ${K8S_NAMESPACE}"
                             sh "kubectl apply -f ${pathService} -n ${K8S_NAMESPACE}"
                         } else {
-                            echo "WARNING: No se encontró deployment para ${service}"
+                            echo "WARNING: No se encontró deployment o service para ${service}"
                         }
                     }
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo 'Pipeline falló, revisa los logs.'
+        }
+        always {
+            echo "Pipeline ejecutado en el namespace: ${K8S_NAMESPACE}"
         }
     }
 }
