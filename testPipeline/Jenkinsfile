@@ -40,10 +40,14 @@ spec:
       }
     }
 
-    stage('Test Docker') {
+    stage('Clone Repo and Build Docker') {
       steps {
         container('jenkins-agent-k8s') {
-          sh 'docker build -t test-image .'
+          sh '''
+            git clone https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git
+            cd ecommerce-microservice-backend-app/testPipeline
+            docker build -t test-image .
+          '''
         }
       }
     }
