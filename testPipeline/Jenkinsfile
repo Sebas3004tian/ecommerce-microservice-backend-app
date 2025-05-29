@@ -28,11 +28,18 @@ spec:
     }
   }
   stages {
-    stage('Test Docker') {
+    stage('Check Docker Access') {
       steps {
         container('jenkins-agent-k8s') {
           sh 'docker version'
           sh 'docker info'
+        }
+      }
+    }
+
+    stage('Test Docker') {
+      steps {
+        container('jenkins-agent-k8s') {
           sh 'docker build -t test-image .'
         }
       }
