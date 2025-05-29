@@ -1,0 +1,28 @@
+controller:
+  nodeSelector:
+    kubernetes.io/os: linux
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  servicePort: 8080
+  serviceType: NodePort
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 999
+    fsGroup: 999
+
+  # Aquí añades el montaje del socket
+  # O usa extraVolumes / extraVolumeMounts si el chart lo requiere:
+  extraVolumes:
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
+
+  extraVolumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock

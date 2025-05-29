@@ -43,54 +43,33 @@ spec:
         }
 
 
-        stage('Build All Services') {
+        stage('Build & Push All Services') {
             steps {
                 script {
+                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
                     def allServices = [
-                        "api-gateway",
-                        "favourite-service",
-                        "order-service",
-                        "payment-service",
-                        "product-service",
-                        "shipping-service",
-                        "user-service",
-                        "cloud-config",
-                        "service-discovery",
-                        "proxy-client"
+                    "api-gateway",
+                    "favourite-service",
+                    "order-service",
+                    "payment-service",
+                    "product-service",
+                    "shipping-service",
+                    "user-service",
+                    "cloud-config",
+                    "service-discovery",
+                    "proxy-client"
                     ]
                     for (service in allServices) {
-                        dir(service) {
-                            sh "docker build -t ${DOCKERHUB_USER}/${service}:${IMAGE_TAG} ."
-                        }
+                    dir(service) {
+                        def customImage = docker.build("${DOCKERHUB_USER}/${service}:${IMAGE_TAG}")
+                        customImage.push()
                     }
+                    }
+                }
                 }
             }
         }
 
-        stage('Push All Images') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                    script {
-                        def allServices = [
-                            "api-gateway",
-                            "favourite-service",
-                            "order-service",
-                            "payment-service",
-                            "product-service",
-                            "shipping-service",
-                            "user-service",
-                            "cloud-config",
-                            "service-discovery",
-                            "proxy-client"
-                        ]
-                        for (service in allServices) {
-                            sh "docker push ${DOCKERHUB_USER}/${service}:${IMAGE_TAG}"
-                        }
-                    }
-                }
-            }
-        }
 
         stage('Deploy Core Services') {
             steps {

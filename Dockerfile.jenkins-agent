@@ -2,20 +2,23 @@ FROM jenkins/inbound-agent:latest
 
 USER root
 
-# Instala herramientas necesarias
+# Instala herramientas necesarias, incluido docker-cli y maven
 RUN apt-get update && apt-get install -y \
     curl \
     apt-transport-https \
     ca-certificates \
     gnupg \
     git \
-    docker.io \
     maven \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala kubectl
 RUN curl -sLO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
     && rm kubectl
+
+# Verifica que docker pueda ejecutarse sin sudo (opcional)
+RUN groupadd docker || true && usermod -aG docker jenkins
 
 USER jenkins
