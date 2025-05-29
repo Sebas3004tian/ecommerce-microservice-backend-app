@@ -1,0 +1,41 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'jenkins-agent-k8s'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins/label: jenkins-agent-k8s
+spec:
+  serviceAccountName: jenkins
+  containers:
+  - name: jenkins-agent-k8s
+    image: sebas3004tian/jenkins-agent-k8s:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
+"""
+    }
+  }
+  stages {
+    stage('Test Docker') {
+      steps {
+        container('jenkins-agent-k8s') {
+          sh 'docker version'
+          sh 'docker info'
+          sh 'docker build -t test-image .'
+        }
+      }
+    }
+  }
+}
