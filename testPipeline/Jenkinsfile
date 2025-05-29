@@ -45,7 +45,8 @@ spec:
         container('jenkins-agent-k8s') {
           sh '''
             git clone https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git
-            cd ecommerce-microservice-backend-app/testPipeline
+            cd testPipeline
+            ls
             docker build -t test-image .
           '''
         }
