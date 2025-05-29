@@ -9,6 +9,7 @@ metadata:
   labels:
     jenkins/label: jenkins-agent-k8s
 spec:
+  serviceAccountName: jenkins
   containers:
   - name: jenkins-agent-k8s
     image: sebas3004tian/jenkins-agent-k8s:latest
