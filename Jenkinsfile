@@ -34,6 +34,7 @@ spec:
     environment {
         DOCKERHUB_USER = "sebas3004tian"
         IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+        BRANCH_NAME = "${env.BRANCH_NAME}"
         REPO_URL = "https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git"
         K8S_NAMESPACE = "ecommerce"
     }
@@ -41,7 +42,7 @@ spec:
     stages {
         stage('Checkout') {
             steps {
-                git branch: ${env.BRANCH_NAME}, url: "${REPO_URL}"
+                git branch: ${BRANCH_NAME}, url: "${REPO_URL}"
             }
         }
 
