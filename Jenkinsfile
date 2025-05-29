@@ -33,7 +33,7 @@ spec:
 
     environment {
         DOCKERHUB_USER = "sebas3004tian"
-        IMAGE_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+        IMAGE_TAG = "dev-${env.BUILD_NUMBER}"
         REPO_URL = "https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git"
         K8S_NAMESPACE = "ecommerce"
     }
