@@ -42,7 +42,7 @@ spec:
     stages {
         stage('Checkout') {
             steps {
-                git branch: ${BRANCH_NAME}, url: "${REPO_URL}"
+                git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
             }
         }
 
