@@ -82,6 +82,70 @@ spec:
             }
         }
 
+        stage('Change Image in Manifests') {
+            steps {
+                script {
+                    def allServicesCore = [
+                        "cloud-config",
+                        "service-discovery",
+                        "zipkin",
+                    ]
+                    def allServices = [
+                        "api-gateway",
+                        "favourite-service",
+                        "order-service",
+                        "payment-service",
+                        "product-service",
+                        "shipping-service",
+                        "user-service",
+                        "cloud-config",
+                        "service-discovery",
+                        "proxy-client"
+                    ]
+
+                    for (serviceCore in allServicesCore) {
+                        def manifestPath = "k8s/dev/core/${serviceCore}-deployment.yaml"
+
+                        if (fileExists(manifestPath)) {
+                            echo "Actualizando imagen en ${manifestPath}..."
+
+                            def newImage = "${DOCKERHUB_USER}/${serviceCore}:${IMAGE_TAG}"
+
+                            sh """
+                            sed -i 's|image: .*${service}:.*|image: ${newImage}|' ${manifestPath}
+                            """
+
+
+                            // Confirmación visual (opcional)
+                            sh "grep 'image:' ${manifestPath}"
+                        } else {
+                            echo "WARNING: No se encontró manifest para ${serviceCore}"
+                        }
+                    }
+
+                    for (service in allServices) {
+                        def manifestPath = "k8s/dev/${service}-deployment.yaml"
+
+                        if (fileExists(manifestPath)) {
+                            echo "Actualizando imagen en ${manifestPath}..."
+
+                            def newImage = "${DOCKERHUB_USER}/${service}:${IMAGE_TAG}"
+
+                            sh """
+                            sed -i 's|image: .*/${service}:.*|image: ${newImage}|' ${manifestPath}
+                            """
+
+                            // Confirmación visual (opcional)
+                            sh "grep 'image:' ${manifestPath}"
+                        } else {
+                            echo "WARNING: No se encontró manifest para ${service}"
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         stage('Deploy Core Services') {
             steps {
