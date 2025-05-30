@@ -24,23 +24,19 @@ pipeline {
         }
 
         stage('Build JARs with Maven') {
-            agent {
-                docker {
-                    image 'maven:3.8.6-openjdk-11'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
             steps {
                 script {
+                docker.image('maven:3.8.6-openjdk-11').inside('-v $HOME/.m2:/root/.m2') {
                     if (env.BRANCH_NAME == 'develop') {
-                        sh './mvnw clean package -DskipTests'
+                    sh './mvnw clean package -DskipTests'
                     } else {
-                        echo "Omitiendo build de JARs en rama '${env.BRANCH_NAME}'"
+                    echo "Omitiendo build de JARs en rama '${env.BRANCH_NAME}'"
                     }
                 }
-            
+                }
             }
-        }
+         }
+
 
 
 
