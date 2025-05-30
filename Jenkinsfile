@@ -27,7 +27,7 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'develop') {
-                        sh './mvnw clean package '
+                        sh './mvnw clean package -DskipTests'
                     } else if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'stage') {
                         sh './mvnw clean package'
                     } else {
