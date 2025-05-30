@@ -14,8 +14,6 @@ pipeline {
         stage('Prepare Namespace') {
             steps {
                 sh "kubectl get namespace ${K8S_NAMESPACE} || kubectl create namespace ${K8S_NAMESPACE}"
-                sh "java -version" 
-                sh"javac -version"
             }
         }
 
@@ -26,6 +24,12 @@ pipeline {
         }
 
         stage('Build JARs with Maven') {
+            agent {
+                docker {
+                    image 'maven:3.8.6-openjdk-11'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
             steps {
                 script {
                     if (env.BRANCH_NAME == 'develop') {
