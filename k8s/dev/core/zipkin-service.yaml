@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f core.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zipkin
+  name: zipkin
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "9411"
+      port: 9411
+      targetPort: 9411
+  selector:
+    io.kompose.service: zipkin
+status:
+  loadBalancer: {}

@@ -1,0 +1,56 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'jenkins-agent-k8s'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins/label: jenkins-agent-k8s
+spec:
+  serviceAccountName: jenkins
+  securityContext:
+    runAsUser: 0
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
+
+  containers:
+  - name: jenkins-agent-k8s
+    image: sebas3004tian/jenkins-agent-k8s:latest
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+    command:
+    - cat
+    tty: true
+"""
+    }
+  }
+  stages {
+    stage('Check Docker Access') {
+      steps {
+        container('jenkins-agent-k8s') {
+          sh 'docker version'
+          sh 'docker info'
+        }
+      }
+    }
+
+    stage('Clone Repo and Build Docker') {
+      steps {
+        container('jenkins-agent-k8s') {
+          sh '''
+            git clone https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git
+            cd testPipeline
+            ls
+            docker build -t test-image .
+          '''
+        }
+      }
+    }
+  }
+}
