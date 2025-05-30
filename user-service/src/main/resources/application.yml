@@ -1,4 +1,3 @@
-
 server:
   servlet:
     context-path: /user-service
@@ -36,10 +35,7 @@ management:
     health:
       show-details: always
 
-
-
-
-
-
-
-
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-discovery:8761/eureka/
