@@ -62,18 +62,18 @@ pipeline {
         stage('Change Image in Manifests') {
             steps {
                 script {
-                    def allServicesCore = ["cloud-config", "service-discovery", "zipkin"]
+                    def allServicesCore = ["cloud-config", "service-discovery"]
                     def allServices = [
-                        "api-gateway", "favourite-service", "order-service", "payment-service",
-                        "product-service", "shipping-service", "user-service",
-                        "cloud-config", "service-discovery", "proxy-client"
+                        "api-gateway", "favourite-service", "order-service",
+                        "payment-service", "product-service", "shipping-service", "user-service", "proxy-client"
                     ]
 
                     for (serviceCore in allServicesCore) {
                         def manifestPath = "k8s/dev/core/${serviceCore}-deployment.yaml"
                         if (fileExists(manifestPath)) {
                             def newImage = "${DOCKERHUB_USER}/${serviceCore}:${IMAGE_TAG}"
-                            sh "sed -i 's|image: .*/${serviceCore}:.*|image: ${newImage}|' ${manifestPath}"
+                            // Match imágenes como selimhorri/cloud-config-ecommerce-boot:0.1.0
+                            sh "sed -i 's|image: .*/${serviceCore}-ecommerce-boot:.*|image: ${newImage}|' ${manifestPath}"
                             sh "grep 'image:' ${manifestPath}"
                         }
                     }
@@ -82,13 +82,15 @@ pipeline {
                         def manifestPath = "k8s/dev/${service}-deployment.yaml"
                         if (fileExists(manifestPath)) {
                             def newImage = "${DOCKERHUB_USER}/${service}:${IMAGE_TAG}"
-                            sh "sed -i 's|image: .*/${service}:.*|image: ${newImage}|' ${manifestPath}"
+                            // Match imágenes como selimhorri/api-gateway-ecommerce-boot:0.1.0
+                            sh "sed -i 's|image: .*/${service}-ecommerce-boot:.*|image: ${newImage}|' ${manifestPath}"
                             sh "grep 'image:' ${manifestPath}"
                         }
                     }
                 }
             }
         }
+
 
         stage('Deploy Core Services') {
             steps {
@@ -109,7 +111,7 @@ pipeline {
                 script {
                     def otherServices = [
                         "api-gateway", "favourite-service", "order-service",
-                        "payment-service", "product-service", "shipping-service", "user-service"
+                        "payment-service", "product-service", "shipping-service", "user-service", "proxy-client"
                     ]
                     for (service in otherServices) {
                         def pathDeployment = "k8s/dev/${service}-deployment.yaml"
