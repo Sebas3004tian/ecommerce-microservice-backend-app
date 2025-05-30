@@ -23,20 +23,19 @@ pipeline {
             }
         }
 
-        stage('Build JARs with Maven') {
+        stage('Build & Test Conditional') {
             steps {
                 script {
-                docker.image('maven:3.8.6-openjdk-11').inside("-v ${env.HOME}/.m2:/root/.m2") {
                     if (env.BRANCH_NAME == 'develop') {
-                    sh './mvnw clean package -DskipTests'
+                        sh './mvnw clean package -DskipTests'
+                    } else if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'stage') {
+                        sh './mvnw clean package'
                     } else {
-                    echo "Omitiendo build de JARs en rama '${env.BRANCH_NAME}'"
+                        echo "No build for branch ${env.BRANCH_NAME}"
                     }
                 }
-                }
             }
-         }
-
+        }
 
 
 
