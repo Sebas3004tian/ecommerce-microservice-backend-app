@@ -26,7 +26,7 @@ pipeline {
         stage('Build JARs with Maven') {
             steps {
                 script {
-                docker.image('maven:3.8.6-openjdk-11').inside('-v $HOME/.m2:/root/.m2') {
+                docker.image('maven:3.8.6-openjdk-11').inside("-v ${env.HOME}/.m2:/root/.m2") {
                     if (env.BRANCH_NAME == 'develop') {
                     sh './mvnw clean package -DskipTests'
                     } else {
