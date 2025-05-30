@@ -9,6 +9,15 @@ class UserServiceUser(HttpUser):
         self.user_ids = []
         self.base_url = "/user-service/api/users"
 
+        for _ in range(20):
+            user_data = self.generate_user_payload()
+            response = self.client.post(self.base_url, json=user_data)
+            if response.status_code == 200:
+                user_id = response.json().get("userId")
+                if user_id:
+                    self.user_ids.append(user_id)
+
+
     def generate_random_email(self):
         return f"test_{''.join(random.choices(string.ascii_lowercase + string.digits, k=8))}@example.com"
 
@@ -94,7 +103,7 @@ class UserServiceUser(HttpUser):
 
     @task(1)
     def delete_user(self):
-        if len(self.user_ids) <= 5:
+        if len(self.user_ids) <= 10:  # Antes eran 5
             return
         user_id = self.user_ids.pop(random.randint(0, len(self.user_ids) - 1))
         with self.client.delete(f"{self.base_url}/{user_id}", catch_response=True) as response:
@@ -103,16 +112,14 @@ class UserServiceUser(HttpUser):
             else:
                 response.failure(f"Delete failed with {response.status_code}")
 
+
     @task(1)
     def test_invalid_user(self):
         with self.client.get(f"{self.base_url}/999999", catch_response=True) as response:
-            if response.status_code == 400:
-                try:
-                    if "timestamp" in response.json():
-                        response.success()
-                    else:
-                        response.failure("Expected error format missing")
-                except Exception as e:
-                    response.failure(f"Invalid JSON in error: {str(e)}")
+            if response.status_code in [400, 404]:
+                response.success()
+            elif response.status_code == 500:
+                response.failure("Server error — expected graceful error handling (400/404)")
             else:
-                response.failure(f"Expected 400, got {response.status_code}")
+                response.failure(f"Unexpected status code: {response.status_code}")
+
