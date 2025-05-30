@@ -14,6 +14,8 @@ pipeline {
         stage('Prepare Namespace') {
             steps {
                 sh "kubectl get namespace ${K8S_NAMESPACE} || kubectl create namespace ${K8S_NAMESPACE}"
+                sh "java -version" 
+                sh"javac -version"
             }
         }
 
