@@ -1,46 +1,5 @@
 pipeline {
-    agent {
-        kubernetes {
-            defaultContainer 'jenkins-agent-k8s'
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    jenkins/label: jenkins-agent-k8s
-spec:
-  serviceAccountName: jenkins
-  securityContext:
-    runAsUser: 0
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
-      type: Socket
-  - name: agent-storage
-    emptyDir:
-      sizeLimit: 10Gi
-  containers:
-  - name: jenkins-agent-k8s
-    image: sebas3004tian/jenkins-agent-k8s:latest
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
-    - name: agent-storage
-      mountPath: /home/jenkins/agent-storage
-    command:
-    - cat
-    tty: true
-    resources:
-      requests:
-        memory: "4Gi"
-        cpu: "2000m"
-      limits:
-        memory: "6Gi"
-        cpu: "3000m"
-"""
-        }
-    }
+    agent any
 
     environment {
         DOCKERHUB_USER = "sebas3004tian"
@@ -66,15 +25,14 @@ spec:
 
         stage('Build JARs with Maven') {
             steps {
-                container('jenkins-agent-k8s') {
-                    script {
-                        if (env.BRANCH_NAME == 'develop') {
-                            sh './mvnw clean package -DskipTests'
-                        } else {
-                            echo "Omitiendo build de JARs en rama '${env.BRANCH_NAME}'"
-                        }
+                script {
+                    if (env.BRANCH_NAME == 'develop') {
+                        sh './mvnw clean package -DskipTests'
+                    } else {
+                        echo "Omitiendo build de JARs en rama '${env.BRANCH_NAME}'"
                     }
                 }
+            
             }
         }
 
