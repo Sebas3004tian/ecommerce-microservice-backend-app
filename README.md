@@ -1,3 +1,147 @@
+# Taller 2 - CI/CD con Jenkins, Docker y Kubernetes
+
+Este taller forma parte del curso **Ingenieria de Software 5** y tiene como objetivo implementar un flujo CI/CD completo sobre un entorno local utilizando **Jenkins**, **Docker** y **Minikube (Kubernetes)**. Se despliegan y prueban múltiples microservicios desde un fork del repositorio `ecommerce-microservice-backend-app`.
+
+---
+
+## Objetivos
+
+- Automatizar la construcción, pruebas y despliegue de microservicios.
+- Configurar entornos de desarrollo (`develop`), pruebas (`stage`) y producción (`master`) en Kubernetes.
+- Usar Jenkins como servidor CI/CD centralizado.
+- Aplicar pruebas de carga con Locust y analizar resultados.
+- Controlar versiones de imagen vía Docker Hub.
+
+---
+
+## Requisitos
+
+- Docker
+- Minikube (con 10 GB de RAM y 4 CPUs)
+- `kubectl`
+- Jenkins
+- Docker Hub (token de acceso)
+- Acceso al fork del repositorio [`ecommerce-microservice-backend-app`](https://github.com/Sebas3004tian/ecommerce-microservice-backend-app.git)
+
+---
+
+## Instalación y configuración de Jenkins en Minikube
+
+### 1. Iniciar Minikube con recursos aumentados
+
+```bash
+minikube delete
+minikube start --memory=10240 --cpus=4
+```
+
+### 2. Crear namespace para Jenkins
+
+```bash
+kubectl create namespace jenkins-namespace
+```
+
+### 3. Aplicar configuración de Jenkins
+
+```bash
+kubectl apply -f jenkins-storage.yaml
+kubectl apply -f jenkins-sa-rbac.yaml
+kubectl apply -f jenkins-deployment.yaml
+kubectl apply -f jenkins-service.yaml
+```
+
+### 4. Obtener contraseña de administrador
+
+```bash
+kubectl get pods -n jenkins-namespace -l app=jenkins-server
+kubectl exec -n jenkins-namespace <nombre-del-pod> -- cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+> Ejemplo: `c88420bb80824902bc31d0bcf0e9d6ac`
+
+### 5. Acceder a Jenkins
+
+```bash
+kubectl port-forward -n jenkins-namespace svc/jenkins-service 9090:8080
+```
+
+Abrir en navegador: [http://localhost:9090](http://localhost:9090)
+
+> Usuario: `admin`  
+> Contraseña: la obtenida del comando anterior
+
+---
+
+## Docker y Docker Hub
+
+### Crear y subir imagen personalizada de Jenkins
+
+```bash
+docker build -t sebas3004tian/jenkins-k8s:latest .
+docker push sebas3004tian/jenkins-k8s:latest
+```
+
+### Iniciar sesión en Docker Hub
+
+```bash
+docker login -u sebas3004tian
+```
+
+---
+
+## Namespaces y despliegue de microservicios
+
+Los entornos `develop`, `stage` y `master` están organizados por namespaces.
+
+### Comandos para inspección rápida:
+
+```bash
+kubectl get pods -n develop
+kubectl get svc -n develop
+kubectl get deployment -n develop -o=jsonpath='{range .items[*]}{.metadata.name}{" => "}{.spec.template.spec.containers[*].image}{"\n"}{end}'
+```
+
+Repetir cambiando `develop` por `stage` o `master`.
+
+---
+
+## Limpieza del entorno
+
+### Eliminar entornos y recursos:
+
+```bash
+kubectl delete namespace develop
+kubectl delete namespace stage
+kubectl delete namespace master
+```
+
+### Eliminar Minikube por completo:
+
+```bash
+minikube delete
+```
+
+---
+
+## Estructura del repositorio
+
+```
+.
+├── jenkins/
+│   ├── jenkins-storage.yaml
+│   ├── jenkins-sa-rbac.yaml
+│   ├── jenkins-deployment.yaml
+│   └── jenkins-service.yaml
+├── k8s/
+│   └── dev/
+│       ├── core/
+│       └── ...
+├── Jenkinsfile
+├── Dockerfile
+└── README.md
+```
+
+---
+
 # e-Commerce-boot μServices 
 
 ## Important Note: This project's new milestone is to move The whole system to work on Kubernetes, so stay tuned.
